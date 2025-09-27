@@ -1,0 +1,146 @@
+
+
+🔹 Steps to Install Ansible on Ubuntu (Latest Method)
+-----------------------------------------------------------
+
+1. Update System Packages
+sudo apt update && sudo apt upgrade -y
+
+2. Install Required Dependencies
+sudo apt install software-properties-common -y
+
+3. Add the Ansible PPA (Official Repository)
+sudo add-apt-repository --yes --update ppa:ansible/ansible
+
+4. Install Ansible
+sudo apt install ansible -y
+
+5. Verify Installation
+ansible --version
+
+
+
+use case
+-------------
+---------------
+
+install apache2 package on manage nodes using control node
+
+**first crete one ec2 this is for install the ansible packages and this is control node this control the manage or worker nodes.
+**then create and login 2 or more ec2 this ec2's are manage nodes
+
+in control node server
+-----------------------
+
+** sudo vim /etc/ansible/hosts    (this is for create hosts)
+
+onece enter this command ansivle host file, then edit the that file,
+
+edit this (write the below lines to file last)
+
+[vinay]
+host1 ansible_host=172.31.91.41 ansible_user=ubuntu ansible_ssh_private_key_file=/home/ubuntu/vinay-key.pem
+host2 ansible_host=172.31.16.99 ansible_user=ubuntu ansible_ssh_private_key_file=/home/ubuntu/vinay-key.pem
+
+:wq!
+
+
+** sudo cat /etc/ansible/hosts
+
+
+check the connection is establish or not using this commands:::::
+
+** ansible all -m ping
+**ansible host1 -m ping
+** ansible host2 -m ping
+** ansible vinay -m ping  ( vinay is the group name )
+
+shows success
+
+create one directory this is for write a ansible playbook
+** mkdir ansible
+** cd ansible/
+
+** touch package-playbook.yaml
+** vim package-playbook.yaml
+
+press i
+
+- hosts: vinay
+  become: yes
+  tasks:
+    - name: update
+      apt: update_cache=yes
+
+    - name: Install apache2
+      apt: name=apache2 state=latest
+      notify:
+        - restart apache2
+
+  handlers:
+    - name: restart apache2
+      service: name=apache2 state=reloaded
+
+
+📌 Explanation
+
+hosts: vinay → will run on all servers under the [vinay] group in /etc/ansible/hosts.
+
+become: yes → runs tasks with sudo.
+
+apt: update_cache=yes → updates apt package cache.
+
+apt: name=apache2 state=latest → installs or updates Apache2.
+
+notify → triggers a handler if the Apache2 installation changed something.
+
+handlers → defines what to do (reload Apache2 service).
+
+
+apply using this commands
+---------------------------
+
+** ansible -p
+** ansible -p
+** ansible-playbook package-playbook.yaml
+
+
+then go to manage or worker nodes check  
+-------------------------------------------
+
+** sudo systemctl status apache2
+
+shows pakage installed.
+
+
+
+check the disk space of the worker nodes in control node
+---------------------------------------------------------
+** ansible vinay -m command -a "df -h"
+
+shows both worker node disk space
+
+ check the disk space go to worker node and check
+----------------------------------------------------
+** df -h
+
+check particulor server disk space in control node
+------------------------------------------------------
+** ansible host1 -m command -a "df -h"
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+                                                                   this is cold server automation
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
